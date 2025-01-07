@@ -1,6 +1,7 @@
 name: Test Source of v2rayA
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
