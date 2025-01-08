@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/v2rayA/v2rayA/core/touch"
 	"net"
 	"os"
 	"os/signal"
@@ -243,9 +244,38 @@ func updateSubscriptions() {
 	wg.Wait()
 }
 
+func AutoUseFastestServer() {
+	//running := v2ray.ProcessManager.Running()
+	t := touch.GenerateTouch()
+
+	var wt []*configure.Which
+	wt, _ = service.TestHttpLatency(wt, 8*time.Second, 32, false, ctx.Query("testUrl"))
+
+	subs := configure.GetSubscriptions()
+	lenSubs := len(subs)
+	control := make(chan struct{}, 2) //并发限制同时更新2个订阅
+	wg := new(sync.WaitGroup)
+	for i := 0; i < lenSubs; i++ {
+		wg.Add(1)
+		go func(i int) {
+			control <- struct{}{}
+			err := service.UpdateSubscription(i, false)
+			if err != nil {
+				log.Info("[AutoUpdate] Subscriptions: Failed to update subscription -- ID: %d，err: %v", i, err)
+			} else {
+				log.Info("[AutoUpdate] Subscriptions: Complete updating subscription -- ID: %d，Address: %s", i, subs[i].Address)
+			}
+			wg.Done()
+			<-control
+		}(i)
+	}
+	wg.Wait()
+}
+
 func initUpdatingTicker() {
 	conf.TickerUpdateGFWList = time.NewTicker(24 * time.Hour * 365 * 100)
 	conf.TickerUpdateSubscription = time.NewTicker(24 * time.Hour * 365 * 100)
+	conf.TickerUpdateServer = time.NewTicker(24 * time.Hour * 365 * 100)
 	go func() {
 		for range conf.TickerUpdateGFWList.C {
 			_, err := dat.CheckAndUpdateGFWList()
@@ -257,6 +287,11 @@ func initUpdatingTicker() {
 	go func() {
 		for range conf.TickerUpdateSubscription.C {
 			updateSubscriptions()
+		}
+	}()
+	go func() {
+		for range conf.TickerUpdateServer.C {
+			AutoUseFastestServer()
 		}
 	}()
 }
@@ -299,6 +334,12 @@ func checkUpdate() {
 		}
 		go updateSubscriptions()
 	}
+
+	if setting.AutoUseFastestServer != 0 {
+		conf.TickerUpdateServer.Reset(2 * time.Hour)
+		go AutoUseFastestServer()
+	}
+
 	// 检查服务端更新
 	go func() {
 		f := func() {
