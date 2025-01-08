@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/v2rayA/v2rayA/pkg/util/log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -62,6 +63,7 @@ func GetHttpLatency(ctx *gin.Context) {
 		common.ResponseError(ctx, logError("bad request"))
 		return
 	}
+	log.Debug("controller/latency.go --- testurl:%s", ctx.Query("testUrl"))
 	wt, err = service.TestHttpLatency(wt, 8*time.Second, 32, false, ctx.Query("testUrl"))
 	if err != nil {
 		common.ResponseError(ctx, logError(err))

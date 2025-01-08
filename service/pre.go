@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/v2rayA/v2rayA/core/touch"
 	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -243,9 +245,45 @@ func updateSubscriptions() {
 	wg.Wait()
 }
 
+func AutoUseFastestServer() {
+	//running := v2ray.ProcessManager.Running()
+
+	//获取所有服务列表
+	t := touch.GenerateTouch().Subscriptions
+	var wt []*configure.Which
+	//var wtOne *configure.Which
+	for i := 0; i < len(t); i++ {
+		tmp := t[i]
+		for j := 0; j < len(tmp.Servers); j++ {
+			wtOne := configure.Which{}
+			wtOne.Sub = tmp.ID - 1
+			wtOne.TYPE = tmp.Servers[j].TYPE
+			wtOne.ID = tmp.Servers[j].ID
+			wt = append(wt, &wtOne)
+		}
+	}
+
+	//测试服务的速度
+	wt, _ = service.TestHttpLatency(wt, 8*time.Second, 32, false, "https://www.facebook.com")
+
+	//自动启用faster服务器
+	for i := 0; i < len(wt); i++ {
+		firstC := wt[i].Latency[0:1]
+		_, err := strconv.Atoi(firstC)
+		if err == nil {
+			err = service.Connect(wt[i])
+			if err != nil {
+				log.Warn("PostConnection: %v", err)
+				return
+			}
+		}
+	}
+}
+
 func initUpdatingTicker() {
 	conf.TickerUpdateGFWList = time.NewTicker(24 * time.Hour * 365 * 100)
 	conf.TickerUpdateSubscription = time.NewTicker(24 * time.Hour * 365 * 100)
+	conf.TickerUpdateServer = time.NewTicker(24 * time.Hour * 365 * 100)
 	go func() {
 		for range conf.TickerUpdateGFWList.C {
 			_, err := dat.CheckAndUpdateGFWList()
@@ -257,6 +295,11 @@ func initUpdatingTicker() {
 	go func() {
 		for range conf.TickerUpdateSubscription.C {
 			updateSubscriptions()
+		}
+	}()
+	go func() {
+		for range conf.TickerUpdateServer.C {
+			AutoUseFastestServer()
 		}
 	}()
 }
@@ -299,6 +342,12 @@ func checkUpdate() {
 		}
 		go updateSubscriptions()
 	}
+
+	if setting.AutoUseFastestServer != 0 {
+		conf.TickerUpdateServer.Reset(2 * time.Hour)
+		go AutoUseFastestServer()
+	}
+
 	// 检查服务端更新
 	go func() {
 		f := func() {

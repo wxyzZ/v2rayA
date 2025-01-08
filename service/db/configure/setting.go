@@ -13,6 +13,7 @@ type Setting struct {
 	GFWListAutoUpdateIntervalHour      int             `json:"pacAutoUpdateIntervalHour"`
 	SubscriptionAutoUpdateMode         AutoUpdateMode  `json:"subscriptionAutoUpdateMode"`
 	SubscriptionAutoUpdateIntervalHour int             `json:"subscriptionAutoUpdateIntervalHour"`
+	AutoUseFastestServer               int             `json:"autoUseFastestServer"`
 	TcpFastOpen                        DefaultYesNo    `json:"tcpFastOpen"`
 	MuxOn                              DefaultYesNo    `json:"muxOn"`
 	Mux                                int             `json:"mux"`
@@ -32,6 +33,7 @@ func NewSetting() (setting *Setting) {
 		GFWListAutoUpdateIntervalHour:      0,
 		SubscriptionAutoUpdateMode:         NotAutoUpdate,
 		SubscriptionAutoUpdateIntervalHour: 0,
+		AutoUseFastestServer:               0,
 		TcpFastOpen:                        Default,
 		MuxOn:                              No,
 		Mux:                                8,
@@ -55,7 +57,7 @@ type CustomPac struct {
 	RoutingRules     []RoutingRule           `json:"routingRules"`
 }
 
-//v2rayTmpl.RoutingRule的前端友好版本
+// v2rayTmpl.RoutingRule的前端友好版本
 type RoutingRule struct {
 	Filename  string       `json:"filename"`  //SiteDAT文件名
 	Tags      []string     `json:"tags"`      //SiteDAT文件的标签
