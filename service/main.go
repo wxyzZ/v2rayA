@@ -27,6 +27,7 @@ func main() {
 	initConfigure()
 	checkUpdate()
 	hello()
+	startV2ray()
 	if err := run(); err != nil {
 		log.Fatal("main: %v", err)
 	}

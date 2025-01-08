@@ -223,6 +223,14 @@ func hello() {
 	log.Alert("Starting...")
 }
 
+func startV2ray() {
+	err := service.StartV2ray()
+	if err != nil {
+		log.Error("Failed to startV2ray: %v", err.Error())
+		return
+	}
+}
+
 func updateSubscriptions() {
 	subs := configure.GetSubscriptions()
 	lenSubs := len(subs)
@@ -325,7 +333,7 @@ func checkUpdate() {
 				/* 更新LoyalsoldierSite.dat */
 				localGFWListVersion, err := dat.CheckAndUpdateGFWList()
 				if err != nil {
-					log.Warn("Failed to update PAC file: %v", err.Error())
+					log.Error("Failed to update PAC file: %v", err.Error())
 					return
 				}
 				log.Info("Complete updating PAC file. Localtime: %v", localGFWListVersion)
