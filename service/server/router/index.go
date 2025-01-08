@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+//go:embed web
 var webRoot embed.FS
 
 // relativeFS implements fs.FS
