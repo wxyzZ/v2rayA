@@ -5,7 +5,7 @@ on:
       tag:
         type: string
         required: true
-        default: "nightly"
+        default: "0.0.1"
   push:
     branches:
       - main
