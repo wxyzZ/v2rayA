@@ -1,6 +1,6 @@
 name: dispatch_copr
 
-on:
+#on:
   # push:
   #   branches: [ main ]
   #   paths:
