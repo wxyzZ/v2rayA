@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -246,30 +247,37 @@ func updateSubscriptions() {
 
 func AutoUseFastestServer() {
 	//running := v2ray.ProcessManager.Running()
-	t := touch.GenerateTouch()
 
+	//获取所有服务列表
+	t := touch.GenerateTouch().Subscriptions
 	var wt []*configure.Which
-	wt, _ = service.TestHttpLatency(wt, 8*time.Second, 32, false, ctx.Query("testUrl"))
-
-	subs := configure.GetSubscriptions()
-	lenSubs := len(subs)
-	control := make(chan struct{}, 2) //并发限制同时更新2个订阅
-	wg := new(sync.WaitGroup)
-	for i := 0; i < lenSubs; i++ {
-		wg.Add(1)
-		go func(i int) {
-			control <- struct{}{}
-			err := service.UpdateSubscription(i, false)
-			if err != nil {
-				log.Info("[AutoUpdate] Subscriptions: Failed to update subscription -- ID: %d，err: %v", i, err)
-			} else {
-				log.Info("[AutoUpdate] Subscriptions: Complete updating subscription -- ID: %d，Address: %s", i, subs[i].Address)
-			}
-			wg.Done()
-			<-control
-		}(i)
+	//var wtOne *configure.Which
+	for i := 0; i < len(t); i++ {
+		tmp := t[i]
+		for j := 0; j < len(tmp.Servers); j++ {
+			wtOne := configure.Which{}
+			wtOne.Sub = tmp.ID - 1
+			wtOne.TYPE = tmp.Servers[j].TYPE
+			wtOne.ID = tmp.Servers[j].ID
+			wt = append(wt, &wtOne)
+		}
 	}
-	wg.Wait()
+
+	//测试服务的速度
+	wt, _ = service.TestHttpLatency(wt, 8*time.Second, 32, false, "https://www.facebook.com")
+
+	//自动启用faster服务器
+	for i := 0; i < len(wt); i++ {
+		firstC := wt[i].Latency[0:1]
+		_, err := strconv.Atoi(firstC)
+		if err == nil {
+			err = service.Connect(wt[i])
+			if err != nil {
+				log.Warn("PostConnection: %v", err)
+				return
+			}
+		}
+	}
 }
 
 func initUpdatingTicker() {
