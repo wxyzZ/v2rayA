@@ -5,6 +5,11 @@ on:
       tag:
         type: string
         required: true
+        default: "nightly"
+  push:
+    branches:
+      - main
+
 jobs:
   Build_v2rayA_Web:
     runs-on: ubuntu-22.04
@@ -548,6 +553,7 @@ jobs:
           v2ray_packages_version.txt
           xray_packages_version.txt
   Build_APT_Repository_and_AUR:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Binaries, Build_Linux_Packages, Build_v2ray_Debian_Packages]
     steps:
@@ -630,6 +636,7 @@ jobs:
         ./install/tool/ssh-add_expect ./key
         bash install/aur/deploy.sh
   Release_to_Homebrew:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Binaries]
     steps:
@@ -684,6 +691,7 @@ jobs:
           v2raya-x86_64-macos.zip v2raya-x86_64-macos.zip.sha256.txt \
           v2raya-aarch64-macos.zip v2raya-aarch64-macos.zip.sha256.txt
   Release_v2rayA_to_Docker:
+    if: false
     runs-on: ubuntu-22.04
     needs: [GitHub_Release]
     steps:
@@ -735,6 +743,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
   Release_v2rayA_GUI_to_Docker:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Web]
     steps:
@@ -787,6 +796,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
   Submit_to_Microsoft_winget:
+    if: false
     runs-on: windows-latest
     needs: [GitHub_Release]
     steps:

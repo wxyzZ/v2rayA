@@ -1,14 +1,14 @@
 name: dispatch_copr
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - "gui/**"
-      - ".github/workflows/*.yml"
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - "**/*.go"
+  #     - "go.mod"
+  #     - "go.sum"
+  #     - "gui/**"
+  #     - ".github/workflows/*.yml"
 
 
 jobs:

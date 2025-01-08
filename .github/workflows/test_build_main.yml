@@ -2,16 +2,16 @@ name: Test Source of v2rayA
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - dependabot/*
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - "gui/**"
-      - ".github/workflows/*.yml"
+  # push:
+    # branches:
+    #   - main
+    #   - dependabot/*
+    # paths:
+    #   - "**/*.go"
+    #   - "go.mod"
+    #   - "go.sum"
+    #   - "gui/**"
+    #   - ".github/workflows/*.yml"
 
 jobs:
   Build_v2rayA_Web:
