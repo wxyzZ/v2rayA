@@ -273,9 +273,11 @@ func AutoUseFastestServer() {
 		if err == nil {
 			err = service.Connect(wt[i])
 			if err != nil {
-				log.Warn("PostConnection: %v", err)
+				log.Error("PostConnection: %v", err)
 				return
 			}
+		} else {
+			_ = service.Disconnect(*wt[i], false)
 		}
 	}
 }
@@ -344,7 +346,7 @@ func checkUpdate() {
 	}
 
 	if setting.AutoUseFastestServer != 0 {
-		conf.TickerUpdateServer.Reset(2 * time.Hour)
+		conf.TickerUpdateServer.Reset(time.Duration(setting.AutoUseFastestServer) * time.Minute)
 		go AutoUseFastestServer()
 	}
 

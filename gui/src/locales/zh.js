@@ -110,7 +110,7 @@ export default {
     specialMode: "特殊模式",
     mux: "多路复用",
     autoUpdateSub: "自动更新订阅",
-    autoUseFastestServer: "自动使用最快服务器",
+    autoUseFastestServer: "自动更新可用服务器（单位：分钟）",
     autoUpdateGfwlist: "自动更新GFWList",
     preferModeWhenUpdate: "解析订阅链接/更新时优先使用",
     ipForwardOn: "开启IP转发",
