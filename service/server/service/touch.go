@@ -6,7 +6,6 @@ import (
 	"github.com/v2rayA/v2rayA/db/configure"
 	"github.com/v2rayA/v2rayA/pkg/util/log"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"time"
 )
@@ -89,26 +88,24 @@ func DeleteWhich(ws []*configure.Which) (err error) {
 }
 
 func AutoUseFastestServer(index int) {
-	//running := v2ray.ProcessManager.Running()
-	currentOS := runtime.GOOS
 
-	t := touch.GenerateTouch().Subscriptions
+	if v2ray.ProcessManager.Running() {
+		_ = StopV2ray()
+	}
+	//_ = StartV2ray()
+
+	subscriptionInfos := touch.GenerateTouch().Subscriptions
 	if index >= 0 {
-		tmp := t
-		t = []touch.Subscription{}
-		t = append(t, tmp[index])
-	} else {
-		if currentOS == "windows" {
-			KillProcess("v2ray.exe")
-		}
-		_ = configure.ClearConnects("")
+		tmp := subscriptionInfos
+		subscriptionInfos = []touch.Subscription{}
+		subscriptionInfos = append(subscriptionInfos, tmp[index])
 	}
 
 	//获取所有服务列表
 	var wt []*configure.Which
 	//var wtOne *configure.Which
-	for i := 0; i < len(t); i++ {
-		tmp := t[i]
+	for i := 0; i < len(subscriptionInfos); i++ {
+		tmp := subscriptionInfos[i]
 		for j := 0; j < len(tmp.Servers); j++ {
 			wtOne := configure.Which{}
 			wtOne.Sub = tmp.ID - 1
