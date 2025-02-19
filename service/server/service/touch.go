@@ -125,6 +125,7 @@ func AutoUseFastestServer(index int) {
 	//
 	//自动启用faster服务器
 	//
+	_ = configure.ClearConnects("")
 	for i := 0; i < len(wt); i++ {
 		firstC := wt[i].Latency[0:1] //Latency 是测速结果，如果第一位是数字，表明是可用的
 		_, err := strconv.Atoi(firstC)
@@ -132,7 +133,7 @@ func AutoUseFastestServer(index int) {
 			err = Connect(wt[i])
 			if err != nil {
 				log.Error("AutoUseFastestServer error: %v", err)
-				return
+
 			}
 		} else {
 			//log.Error("自动启用faster服务器: %v", err)
