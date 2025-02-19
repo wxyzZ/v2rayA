@@ -1,14 +1,15 @@
 package service
 
 import (
+	"os/exec"
+	"strconv"
+	"time"
+
 	"github.com/v2rayA/v2rayA/conf"
 	"github.com/v2rayA/v2rayA/core/touch"
 	"github.com/v2rayA/v2rayA/core/v2ray"
 	"github.com/v2rayA/v2rayA/db/configure"
 	"github.com/v2rayA/v2rayA/pkg/util/log"
-	"os/exec"
-	"strconv"
-	"time"
 )
 
 func DeleteWhich(ws []*configure.Which) (err error) {
@@ -125,7 +126,9 @@ func AutoUseFastestServer(index int) {
 	//
 	//自动启用faster服务器
 	//
-	_ = configure.ClearConnects("")
+	if index < 0 {
+		_ = configure.ClearConnects("")
+	}
 	for i := 0; i < len(wt); i++ {
 		firstC := wt[i].Latency[0:1] //Latency 是测速结果，如果第一位是数字，表明是可用的
 		_, err := strconv.Atoi(firstC)
