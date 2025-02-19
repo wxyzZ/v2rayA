@@ -241,9 +241,9 @@ func updateSubscriptions() {
 		}(i)
 	}
 	wg.Wait()
-	conf.UpdatingMu2.Lock()
-	service.AutoUseFastestServer(-1)
-	conf.UpdatingMu2.Unlock()
+	//conf.UpdatingMu2.Lock()
+	go service.AutoUseFastestServer(-1)
+	//conf.UpdatingMu2.Unlock()
 }
 
 func initUpdatingTicker() {
@@ -265,7 +265,7 @@ func initUpdatingTicker() {
 	}()
 	go func() {
 		for range conf.TickerUpdateServer.C {
-			service.AutoUseFastestServer(-1)
+			go service.AutoUseFastestServer(-1)
 		}
 	}()
 }

@@ -57,9 +57,9 @@ func PutSubscription(ctx *gin.Context) {
 		common.ResponseError(ctx, logError(err))
 		return
 	}
-	conf.UpdatingMu2.Lock()
-	service.AutoUseFastestServer(index)
-	conf.UpdatingMu2.Unlock()
+	//conf.UpdatingMu2.Lock()
+	go service.AutoUseFastestServer(index)
+	//conf.UpdatingMu2.Unlock()
 	getTouch(ctx)
 }
 

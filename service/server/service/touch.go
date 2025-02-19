@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/v2rayA/v2rayA/conf"
 	"github.com/v2rayA/v2rayA/core/touch"
 	"github.com/v2rayA/v2rayA/core/v2ray"
 	"github.com/v2rayA/v2rayA/db/configure"
@@ -88,9 +89,10 @@ func DeleteWhich(ws []*configure.Which) (err error) {
 }
 
 func AutoUseFastestServer(index int) {
-
+	conf.UpdatingMu2.Lock()
 	if v2ray.ProcessManager.Running() {
 		_ = StopV2ray()
+		conf.UpdatingMu2.Unlock()
 	}
 	//_ = StartV2ray()
 
@@ -118,9 +120,9 @@ func AutoUseFastestServer(index int) {
 	//outbounds := configure.GetOutbounds()
 	//settings := configure.GetOutboundSetting(outbounds[0])
 	//测试服务的速度
-	//conf.UpdatingMu2.Lock()
+	conf.UpdatingMu2.Lock()
 	wt, _ = TestHttpLatency(wt, 4*time.Second, 32, false, "")
-	//conf.UpdatingMu2.Unlock()
+	//
 	//自动启用faster服务器
 	//
 	for i := 0; i < len(wt); i++ {
@@ -146,6 +148,7 @@ func AutoUseFastestServer(index int) {
 			}
 		}
 	}
+	conf.UpdatingMu2.Unlock()
 }
 
 func KillProcess(processName string) {
