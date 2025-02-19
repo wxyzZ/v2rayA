@@ -5,6 +5,11 @@ on:
       tag:
         type: string
         required: true
+        default: "0.0.1"
+  push:
+    branches:
+      - main
+
 jobs:
   Build_v2rayA_Web:
     runs-on: ubuntu-22.04
@@ -57,9 +62,9 @@ jobs:
     - name: Check Version
       id: prep
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -70,6 +75,10 @@ jobs:
           service/go.mod
           service/go.sum
         go-version: ^1.21
+    - name: Install UPX
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y upx-ucl tree
     - name: Build v2rayA Binaries
       id: build
       shell: pwsh
@@ -80,6 +89,7 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."linux-$arch")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION} -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION} || true
           Set-Location -Path ..
         }
         foreach ($arm in @('7')) {
@@ -88,6 +98,7 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."linux-arm$arm")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION} -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION} || true
           Set-Location -Path ..
         }
         foreach ($arch in @('amd64', 'arm64')) {
@@ -96,6 +107,7 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."windows-$arch")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION}.exe -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION}.exe || true
           Set-Location -Path ..
         }
         foreach ($arch in @('amd64', 'arm64')) {
@@ -104,6 +116,7 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."darwin-$arch")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION} -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION} || true
           Set-Location -Path ..
         }
         foreach ($arch in @('amd64', 'arm64')) {
@@ -112,6 +125,7 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."freebsd-$arch")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION} -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION} || true
           Set-Location -Path ..
         }
         foreach ($arch in @('amd64', 'arm64')) {
@@ -120,6 +134,8 @@ jobs:
           $filename = $((Get-Content ./install/friendly-filenames.json | ConvertFrom-Json)."openbsd-$arch")."friendlyName"
           Set-Location -Path service
           go build -tags "with_gvisor" -o ../v2raya_binaries/v2raya_${filename}_${env:VERSION} -ldflags="-X github.com/v2rayA/v2rayA/conf.Version=${env:VERSION} -s -w" -trimpath
+          # upx --best --lzma -qk ../v2raya_binaries/v2raya_${filename}_${env:VERSION} || true
+          tree ../v2raya_binaries/
           Set-Location -Path ..
         }
     - name: Upload Artifact
@@ -138,9 +154,9 @@ jobs:
       id: prep
       shell: bash
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -242,9 +258,9 @@ jobs:
     - name: Check Version
       id: prep
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -341,9 +357,9 @@ jobs:
     - name: Check Version
       id: prep
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -355,14 +371,16 @@ jobs:
       shell: bash
       run: |
         mkdir -p release
+        ls -lr builds/
         for file in $(ls builds | grep -E "^installer|^v2raya"); do
           mv builds/$file/$file release/
         done
         mv builds/web.tar.gz/web.tar.gz release/
         for file in $(ls release); do
+          tar -czf release/$file.tar.gz release/$file
           sha256sum release/$file | awk '{print $1}' > release/$file.sha256.txt
         done
-        ls -l release/
+        tree release/
     - name: Compress Web Files
       shell: pwsh
       run: |
@@ -370,30 +388,16 @@ jobs:
         ((Get-FileHash ./web.zip).hash).ToLower() > web.zip.sha256.txt
         Move-Item ./web.zip ./release/web.zip
         Move-Item ./web.zip.sha256.txt ./release/web.zip.sha256.txt
+
     - name: Upload Release
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        echo "Don't upload SingTun binaries to GitHub Release for they are not stable."
-        rm -f release/v2raya_with_singtun_*
-        Latest_Releases=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/v2rayA/v2rayA/releases/latest | jq -r '.tag_name')
-        Latest_tag=v${{ steps.prep.outputs.VERSION }}
-        if [ "$Latest_Releases" != "$Latest_tag" ]; then
-          gh release create "v${{ steps.prep.outputs.VERSION }}" -t "v${{ steps.prep.outputs.VERSION }}" --generate-notes
-        fi
-        gh release upload "v${{ steps.prep.outputs.VERSION }}" release/*
-    - name: Refresh Cloudflare Cache
-      env:
-        CF_AUTH_EMAIL: ${{ secrets.CF_AUTH_EMAIL }}
-        CF_PARGE_CACHE_AUTH_KEY: ${{ secrets.CF_PARGE_CACHE_AUTH_KEY }}
-        CF_ZONE: ${{ secrets.CF_ZONE }}
-      shell: bash
-      run: |
-        curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
-          -H "X-Auth-Email: $CF_AUTH_EMAIL" \
-          -H "Authorization: Bearer $CF_PARGE_CACHE_AUTH_KEY" \
-          -H "Content-Type: application/json" \
-          --data '{"purge_everything":true}'
+      uses: softprops/action-gh-release@v1
+      with:
+        prerelease: true
+        tag_name: ${{ inputs.tag || 'v1.0.0' }}
+        files: |
+          release/*.tar.gz
+          release/*.txt
+
   Build_v2ray_Debian_Packages:
     runs-on: ubuntu-22.04
     steps:
@@ -548,6 +552,7 @@ jobs:
           v2ray_packages_version.txt
           xray_packages_version.txt
   Build_APT_Repository_and_AUR:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Binaries, Build_Linux_Packages, Build_v2ray_Debian_Packages]
     steps:
@@ -557,10 +562,10 @@ jobs:
     - name: Check Version
       id: prep
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
         echo "P_DIR=$(pwd)" >> $GITHUB_OUTPUT
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -630,6 +635,7 @@ jobs:
         ./install/tool/ssh-add_expect ./key
         bash install/aur/deploy.sh
   Release_to_Homebrew:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Binaries]
     steps:
@@ -640,9 +646,9 @@ jobs:
       id: prep
       shell: bash
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -684,6 +690,7 @@ jobs:
           v2raya-x86_64-macos.zip v2raya-x86_64-macos.zip.sha256.txt \
           v2raya-aarch64-macos.zip v2raya-aarch64-macos.zip.sha256.txt
   Release_v2rayA_to_Docker:
+    if: false
     runs-on: ubuntu-22.04
     needs: [GitHub_Release]
     steps:
@@ -693,13 +700,13 @@ jobs:
     - name: Check Version
       id: prep
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
         IMAGE="mzz2017/v2raya"
         echo image=${IMAGE} >> $GITHUB_OUTPUT
-        echo tag=${{ inputs.tag }} >> $GITHUB_OUTPUT
+        echo tag=${{ inputs.tag || 'v1.0.0' }} >> $GITHUB_OUTPUT
         sed -i "s|Realv2rayAVersion|$version|g" install/docker/docker_helper.sh
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3.0.0
@@ -735,6 +742,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
   Release_v2rayA_GUI_to_Docker:
+    if: false
     runs-on: ubuntu-22.04
     needs: [Build_v2rayA_Web]
     steps:
@@ -744,9 +752,9 @@ jobs:
     - name: Check Version
       id: prep
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV
@@ -787,6 +795,7 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
   Submit_to_Microsoft_winget:
+    if: false
     runs-on: windows-latest
     needs: [GitHub_Release]
     steps:
@@ -797,9 +806,9 @@ jobs:
       id: prep
       shell: bash
       env:
-        REF: ${{ inputs.tag }}
+        REF: ${{ inputs.tag || 'v1.0.0' }}
       run: |
-        tag=${{ inputs.tag }}
+        tag=${{ inputs.tag || 'v1.0.0' }}
         version=$(echo $tag | sed 's/v//g')
         echo "VERSION=$version" >> $GITHUB_OUTPUT
         echo "VERSION=$version" >> $GITHUB_ENV

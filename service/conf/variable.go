@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"sync"
 	"time"
 )
 
@@ -10,6 +11,9 @@ var (
 	RemoteVersion            = ""
 	TickerUpdateGFWList      *time.Ticker
 	TickerUpdateSubscription *time.Ticker
+	TickerUpdateServer       *time.Ticker
+	UpdatingMu               sync.Mutex
+	UpdatingMu2              sync.Mutex
 )
 
 func IsDebug() bool {

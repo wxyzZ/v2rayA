@@ -1,7 +1,14 @@
 package service
 
 import (
+	"github.com/v2rayA/v2rayA/core/touch"
+	"github.com/v2rayA/v2rayA/core/v2ray"
 	"github.com/v2rayA/v2rayA/db/configure"
+	"github.com/v2rayA/v2rayA/pkg/util/log"
+	"os/exec"
+	"runtime"
+	"strconv"
+	"time"
 )
 
 func DeleteWhich(ws []*configure.Which) (err error) {
@@ -79,4 +86,78 @@ func DeleteWhich(ws []*configure.Which) (err error) {
 		}
 	}
 	return
+}
+
+func AutoUseFastestServer(index int) {
+	//running := v2ray.ProcessManager.Running()
+	currentOS := runtime.GOOS
+
+	t := touch.GenerateTouch().Subscriptions
+	if index >= 0 {
+		tmp := t
+		t = []touch.Subscription{}
+		t = append(t, tmp[index])
+	} else {
+		if currentOS == "windows" {
+			KillProcess("v2ray.exe")
+		}
+		_ = configure.ClearConnects("")
+	}
+
+	//获取所有服务列表
+	var wt []*configure.Which
+	//var wtOne *configure.Which
+	for i := 0; i < len(t); i++ {
+		tmp := t[i]
+		for j := 0; j < len(tmp.Servers); j++ {
+			wtOne := configure.Which{}
+			wtOne.Sub = tmp.ID - 1
+			wtOne.TYPE = tmp.Servers[j].TYPE
+			wtOne.ID = tmp.Servers[j].ID
+			wt = append(wt, &wtOne)
+		}
+	}
+
+	//outbounds := configure.GetOutbounds()
+	//settings := configure.GetOutboundSetting(outbounds[0])
+	//测试服务的速度
+	//conf.UpdatingMu2.Lock()
+	wt, _ = TestHttpLatency(wt, 4*time.Second, 32, false, "")
+	//conf.UpdatingMu2.Unlock()
+	//自动启用faster服务器
+	//
+	for i := 0; i < len(wt); i++ {
+		firstC := wt[i].Latency[0:1] //Latency 是测速结果，如果第一位是数字，表明是可用的
+		_, err := strconv.Atoi(firstC)
+		if err == nil {
+			err = Connect(wt[i])
+			if err != nil {
+				log.Error("AutoUseFastestServer error: %v", err)
+				return
+			}
+		} else {
+			//log.Error("自动启用faster服务器: %v", err)
+			_ = Disconnect(*wt[i], false)
+		}
+
+		if i == len(wt)-1 && !v2ray.ProcessManager.Running() {
+			if len(configure.GetConnectedServers().Get()) == 0 {
+				_ = Connect(wt[i])
+			}
+			if err = StartV2ray(); err == nil {
+				configure.SetRunning(true)
+			}
+		}
+	}
+}
+
+func KillProcess(processName string) {
+	cmd := exec.Command("taskkill", "/IM", processName, "/F")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Error("failed to kill process : %v", err)
+	} else {
+		log.Debug("process terminated successfully : %s", string(output))
+	}
+
 }

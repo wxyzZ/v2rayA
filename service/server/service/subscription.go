@@ -12,6 +12,7 @@ import (
 	"github.com/v2rayA/v2rayA/core/touch"
 	"github.com/v2rayA/v2rayA/db/configure"
 	"github.com/v2rayA/v2rayA/pkg/util/log"
+
 	"io"
 	"net"
 	"net/http"
@@ -217,9 +218,9 @@ func UpdateSubscription(index int, disconnectIfNecessary bool) (err error) {
 	connectedVmessInfo2CssIndex := make(map[string][]int)
 	for i, cs := range css.Get() {
 		if cs.TYPE == configure.SubscriptionServerType && cs.Sub == index {
-			if sRaw, err := cs.LocateServerRaw(); err != nil {
-				return err
-			} else {
+			if sRaw, err := cs.LocateServerRaw(); err == nil {
+				//	return err
+				//} else {
 				link := sRaw.ServerObj.ExportToURL()
 				link2Raw[link] = sRaw
 				connectedVmessInfo2CssIndex[link] = append(connectedVmessInfo2CssIndex[link], i)

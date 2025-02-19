@@ -16,8 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/v2rayA/v2rayA/common"
 	"github.com/v2rayA/v2rayA/conf"
-	"github.com/v2rayA/v2rayA/db/configure"
-	"github.com/v2rayA/v2rayA/pkg/server/jwt"
 	"github.com/v2rayA/v2rayA/pkg/server/reqCache"
 	"github.com/v2rayA/v2rayA/pkg/util/log"
 	"github.com/v2rayA/v2rayA/server/controller"
@@ -152,16 +150,17 @@ func Run() error {
 	}
 	auth := engine.Group("api",
 		nocache,
-		func(ctx *gin.Context) {
-			if !configure.HasAnyAccounts() {
-				common.Response(ctx, common.UNAUTHORIZED, gin.H{
-					"first": true,
-				})
-				ctx.Abort()
-				return
-			}
-		},
-		jwt.JWTAuth(false),
+		//删除登录验证
+		//func(ctx *gin.Context) {
+		//	if !configure.HasAnyAccounts() {
+		//		common.Response(ctx, common.UNAUTHORIZED, gin.H{
+		//			"first": true,
+		//		})
+		//		ctx.Abort()
+		//		return
+		//	}
+		//},
+		//jwt.JWTAuth(false),
 		reqCache.ReqCache,
 	)
 	{
@@ -198,6 +197,7 @@ func Run() error {
 		auth.GET("logger", controller.GetLogger)
 		auth.GET("domainsExcluded", controller.GetDomainsExcluded)
 		auth.PUT("domainsExcluded", controller.PutDomainsExcluded)
+		auth.GET("autouse", controller.GetAutoUse)
 	}
 
 	ServeGUI(engine)

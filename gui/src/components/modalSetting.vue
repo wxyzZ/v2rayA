@@ -361,6 +361,20 @@
           style="flex: 1"
         />
       </b-field>
+      
+      <!-- 添加自定义代码 -->
+      <b-field
+          :label="$t('setting.autoUseFastestServer')"
+          label-position="on-border"
+        >
+          <b-input
+            v-model="autoUseFastestServer"
+            placeholder="0"
+            type="number"
+            min="0"
+            required
+          ></b-input>
+      </b-field>
       <b-field :label="$t('setting.preferModeWhenUpdate')" label-position="on-border">
         <b-select v-model="proxyModeWhenSubscribe" expanded>
           <option value="direct">
@@ -430,6 +444,7 @@ export default {
     subscriptionAutoUpdateMode: "none",
     subscriptionAutoUpdateIntervalHour: 0,
     inboundSniffing: "no",
+    autoUseFastestServer:0,
     customSiteDAT: {},
     pacMode: "whitelist",
     showClockPicker: true,
@@ -503,6 +518,7 @@ export default {
             pacAutoUpdateMode: this.pacAutoUpdateMode,
             pacAutoUpdateIntervalHour: parseInt(this.pacAutoUpdateIntervalHour),
             subscriptionAutoUpdateMode: this.subscriptionAutoUpdateMode,
+            autoUseFastestServer:parseInt(this.autoUseFastestServer),
             subscriptionAutoUpdateIntervalHour: parseInt(
               this.subscriptionAutoUpdateIntervalHour
             ),

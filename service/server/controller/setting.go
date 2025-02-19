@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/v2rayA/v2rayA/common"
+	"github.com/v2rayA/v2rayA/conf"
 	"github.com/v2rayA/v2rayA/core/v2ray/asset"
 	"github.com/v2rayA/v2rayA/db/configure"
 	"github.com/v2rayA/v2rayA/server/service"
@@ -22,18 +23,18 @@ func GetSetting(ctx *gin.Context) {
 }
 
 func PutSetting(ctx *gin.Context) {
-	updatingMu.Lock()
+	conf.UpdatingMu.Lock()
 	if updating {
 		common.ResponseError(ctx, processingErr)
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 		return
 	}
 	updating = true
-	updatingMu.Unlock()
+	conf.UpdatingMu.Unlock()
 	defer func() {
-		updatingMu.Lock()
+		conf.UpdatingMu.Lock()
 		updating = false
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 	}()
 
 	var data configure.Setting

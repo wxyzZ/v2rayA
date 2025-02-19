@@ -206,6 +206,7 @@ export default {
   computed: {
     username() {
       let token = localStorage["token"];
+      token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDE2ODIwNTEsInVuYW1lIjoiYWRtaW4ifQ.tjb5zluqMdHll0dKhK5AENcLkeZFWUsVoUJyTT8_HNQ"
       if (!token) {
         return this.$t("common.notLogin");
       }

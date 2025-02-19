@@ -241,11 +241,15 @@ func updateSubscriptions() {
 		}(i)
 	}
 	wg.Wait()
+	conf.UpdatingMu2.Lock()
+	go service.AutoUseFastestServer(-1)
+	conf.UpdatingMu2.Unlock()
 }
 
 func initUpdatingTicker() {
 	conf.TickerUpdateGFWList = time.NewTicker(24 * time.Hour * 365 * 100)
 	conf.TickerUpdateSubscription = time.NewTicker(24 * time.Hour * 365 * 100)
+	conf.TickerUpdateServer = time.NewTicker(24 * time.Hour * 365 * 100)
 	go func() {
 		for range conf.TickerUpdateGFWList.C {
 			_, err := dat.CheckAndUpdateGFWList("")
@@ -257,6 +261,13 @@ func initUpdatingTicker() {
 	go func() {
 		for range conf.TickerUpdateSubscription.C {
 			updateSubscriptions()
+		}
+	}()
+	go func() {
+		for range conf.TickerUpdateServer.C {
+			conf.UpdatingMu2.Lock()
+			go service.AutoUseFastestServer(-1)
+			conf.UpdatingMu2.Unlock()
 		}
 	}()
 }
@@ -299,6 +310,12 @@ func checkUpdate() {
 		}
 		go updateSubscriptions()
 	}
+
+	if setting.AutoUseFastestServer != 0 {
+		conf.TickerUpdateServer.Reset(time.Duration(setting.AutoUseFastestServer) * time.Minute)
+		//go service.AutoUseFastestServer()
+	}
+
 	// 检查服务端更新
 	go func() {
 		f := func() {

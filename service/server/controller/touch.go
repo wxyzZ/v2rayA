@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/v2rayA/v2rayA/common"
+	"github.com/v2rayA/v2rayA/conf"
 	"github.com/v2rayA/v2rayA/core/touch"
 	"github.com/v2rayA/v2rayA/core/v2ray"
 	"github.com/v2rayA/v2rayA/db/configure"
@@ -10,16 +11,16 @@ import (
 )
 
 func GetTouch(ctx *gin.Context) {
-	updatingMu.Lock()
+	conf.UpdatingMu.Lock()
 	if updating {
 		common.ResponseError(ctx, processingErr)
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 		return
 	}
-	updatingMu.Unlock()
+	conf.UpdatingMu.Unlock()
 	defer func() {
-		updatingMu.Lock()
-		updatingMu.Unlock()
+		conf.UpdatingMu.Lock()
+		conf.UpdatingMu.Unlock()
 	}()
 	getTouch(ctx)
 
@@ -34,18 +35,18 @@ func getTouch(ctx *gin.Context) {
 }
 
 func DeleteTouch(ctx *gin.Context) {
-	updatingMu.Lock()
+	conf.UpdatingMu.Lock()
 	if updating {
 		common.ResponseError(ctx, processingErr)
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 		return
 	}
 	updating = true
-	updatingMu.Unlock()
+	conf.UpdatingMu.Unlock()
 	defer func() {
-		updatingMu.Lock()
+		conf.UpdatingMu.Lock()
 		updating = false
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 	}()
 
 	var ws configure.Whiches

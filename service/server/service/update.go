@@ -11,7 +11,7 @@ import (
 )
 
 func CheckUpdate() (foundNew bool, remoteVersion string, err error) {
-	resp, err := http.Get("https://raw.githubusercontent.com/v2rayA/v2raya-apt/master/dists/v2raya/main/binary-amd64/Packages")
+	resp, err := http.Get("https://127.0.0.1/v2rayA/v2raya-apt/master/dists/v2raya/main/binary-amd64/Packages")
 	if err != nil {
 		return
 	}

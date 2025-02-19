@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"github.com/v2rayA/v2rayA/conf"
+	"github.com/v2rayA/v2rayA/pkg/util/log"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,18 +13,18 @@ import (
 )
 
 func GetPingLatency(ctx *gin.Context) {
-	updatingMu.Lock()
+	conf.UpdatingMu.Lock()
 	if updating {
 		common.ResponseError(ctx, processingErr)
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 		return
 	}
 	updating = true
-	updatingMu.Unlock()
+	conf.UpdatingMu.Unlock()
 	defer func() {
-		updatingMu.Lock()
+		conf.UpdatingMu.Lock()
 		updating = false
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 	}()
 
 	var wt []*configure.Which
@@ -42,18 +44,18 @@ func GetPingLatency(ctx *gin.Context) {
 }
 
 func GetHttpLatency(ctx *gin.Context) {
-	updatingMu.Lock()
+	conf.UpdatingMu.Lock()
 	if updating {
 		common.ResponseError(ctx, processingErr)
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 		return
 	}
 	updating = true
-	updatingMu.Unlock()
+	conf.UpdatingMu.Unlock()
 	defer func() {
-		updatingMu.Lock()
+		conf.UpdatingMu.Lock()
 		updating = false
-		updatingMu.Unlock()
+		conf.UpdatingMu.Unlock()
 	}()
 
 	var wt []*configure.Which
@@ -62,7 +64,17 @@ func GetHttpLatency(ctx *gin.Context) {
 		common.ResponseError(ctx, logError("bad request"))
 		return
 	}
-	wt, err = service.TestHttpLatency(wt, 8*time.Second, 32, false, ctx.Query("testUrl"))
+	log.Debug("controller/latency.go --- testurl:%s", ctx.Query("testUrl"))
+
+	testUrl := ctx.Query("testUrl")
+	//if testUrl == "" {
+	//	outbound := configure.GetOutbounds()[0]
+	//	outSetting := configure.GetOutboundSetting(outbound)
+	//	testUrl = outSetting.ProbeURL
+	//}
+	conf.UpdatingMu2.Lock()
+	wt, err = service.TestHttpLatency(wt, 8*time.Second, 32, false, testUrl)
+	conf.UpdatingMu2.Unlock()
 	if err != nil {
 		common.ResponseError(ctx, logError(err))
 		return
