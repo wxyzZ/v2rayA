@@ -90,10 +90,9 @@ func DeleteWhich(ws []*configure.Which) (err error) {
 }
 
 func AutoUseFastestServer(index int) {
-	conf.UpdatingMu2.Lock()
 	if v2ray.ProcessManager.Running() {
 		_ = StopV2ray()
-		conf.UpdatingMu2.Unlock()
+
 	}
 	//_ = StartV2ray()
 
